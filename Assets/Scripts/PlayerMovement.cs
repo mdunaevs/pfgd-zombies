@@ -25,6 +25,16 @@ public class PlayerMovement : MonoBehaviour
     bool isGrounded;
     bool hitRoof;
 
+    private PistolScript pistolScript;
+    public GameObject pistol;
+
+    private AKMScript akmScript;
+    public GameObject akm;
+
+    void Start(){
+        pistolScript = pistol.GetComponent<PistolScript>();
+        akmScript = akm.GetComponent<AKMScript>();
+    }
 
     // Update is called once per frame
     void Update()
@@ -53,5 +63,15 @@ public class PlayerMovement : MonoBehaviour
         velocity.y +=  gravity * Time.deltaTime;
 
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    void OnControllerColliderHit(ControllerColliderHit col){
+        if(col.gameObject.tag == "MaxAmmo"){
+            pistolScript.maxAmmo = pistolScript.initialAmmo;
+            akmScript.maxAmmo = akmScript.initialAmmo;
+            akmScript.UpdateAmmoUI();
+            pistolScript.UpdateAmmoUI();
+            Destroy(col.gameObject);
+        }
     }
 }

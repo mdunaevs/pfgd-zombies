@@ -17,6 +17,12 @@ public class EnemyAI : MonoBehaviour
     public float damage = 10.0f;
     float attackTime = 1.5f;
 
+    AudioSource zombieAS;
+    public AudioClip attackSound;
+    public AudioClip chaseSound;
+
+    private bool playZombieSound = true;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,13 +30,13 @@ public class EnemyAI : MonoBehaviour
         target = GameObject.FindGameObjectWithTag("Player").transform;
         anim = GetComponent<Animator>();
         isDead = false;
-        
+        zombieAS = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(PlayerHealth.singleton.isDead){
+        if(PlayerHealth.singleton.isDead || isDead){
             DisableEnemy();
             return;
         }
@@ -40,6 +46,12 @@ public class EnemyAI : MonoBehaviour
         } else if(canAttack && !PlayerHealth.singleton.isDead){
             AttackPlayer();
         }
+        if(playZombieSound){
+            zombieAS.PlayOneShot(chaseSound);
+            playZombieSound = false;
+            StartCoroutine(DelayZombieSound());
+        }
+        
     }
 
     public void EnemyDeathAnim(){
@@ -64,6 +76,7 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), turnSpeed * Time.deltaTime);
         anim.SetBool("isWalking", false);
         anim.SetBool("isAttacking", true);
+        zombieAS.PlayOneShot(attackSound);
         StartCoroutine(AttackTime());
     }
 
@@ -71,7 +84,7 @@ public class EnemyAI : MonoBehaviour
         canAttack = false;
         anim.SetBool("isWalking", false);
         anim.SetBool("isAttacking", false);
-        //agent.updatePosition = false;
+        agent.updatePosition = false;
     }
     IEnumerator AttackTime(){
         canAttack = false;
@@ -79,6 +92,11 @@ public class EnemyAI : MonoBehaviour
         PlayerHealth.singleton.DamagePlayer(damage);
         yield return new WaitForSeconds(attackTime);
         canAttack = true;
+    }
+
+    IEnumerator DelayZombieSound(){
+        yield return new WaitForSeconds(5f);
+        playZombieSound = true;
     }
 
 }
